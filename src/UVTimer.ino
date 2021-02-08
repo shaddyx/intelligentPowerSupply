@@ -1,8 +1,14 @@
 #include <Arduino.h>
 #include <JC_Button.h>
 #include <Ticker.h>
-#define PIN_5M 11 
-#define PIN_2M 9
+// #define PIN_5M 11 
+// #define PIN_2M 9
+
+// #define PIN_5M 11 
+#define PIN_2M 11
+#define PIN_1M 9
+
+
 #define PIN_ON_OFF 4
 #define PIN_OUT 2
 #define PIN_LED 6
@@ -11,7 +17,7 @@
 
 bool on = false;
 bool led_state = false;
-long wasPressedFor1m = 0;
+long wasPressedForLongTime = 0;
 
 void stopTimer();
 void ledTimer(){
@@ -28,9 +34,9 @@ void setup() {
   pinMode(PIN_OUT, OUTPUT);
   pinMode(PIN_LED, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(PIN_5M, INPUT);
+  pinMode(PIN_1M, INPUT);
   pinMode(PIN_2M, INPUT);
-  digitalWrite(PIN_5M, 1);
+  digitalWrite(PIN_1M, 1);
   digitalWrite(PIN_2M, 1);
   digitalWrite(PIN_OUT, 1);
   digitalWrite(PIN_LED, 0);
@@ -39,16 +45,21 @@ void setup() {
   Serial.println("init complete");
 }
 
-bool is5(){
-	return digitalRead(PIN_5M) == 0;
-}
-
 bool is2(){
 	return digitalRead(PIN_2M) == 0;
 }
 bool is1(){
-	return wasPressedFor1m;
+	return digitalRead(PIN_1M) == 0;
 }
+
+bool is_infinite(){
+	return wasPressedForLongTime;
+}
+
+bool is5(){
+	return !is1() && !is2() && !is_infinite();
+}
+
 
 void updateOutput(){
 	digitalWrite(PIN_OUT, !on);
@@ -72,6 +83,7 @@ void clearTimer(){
 
 void stopTimer(){
 	on = false;
+	led_state = false;
 	clearTimer();
 }
 
@@ -95,9 +107,11 @@ void toggleState(){
 			startTimer(5, 1000);
 		} else if (is2()){
 			startTimer(2, 300);
-		} else {
+		} else if (is_infinite()) {
 			Serial.println("Starting infinite timer");
 			led_state = true;
+		} else {
+
 		}
 	} else {
 		led_state = false;
@@ -109,10 +123,10 @@ void loop() {
 	led_timer.update();
 	timer.update();
 	if (onButton.wasReleased()){
-		Serial.println("Button was pressed for:" + String(wasPressedFor1m));
+		Serial.println("Button was pressed for:" + String(wasPressedForLongTime));
 		toggleState();
 		delay(300);
 	}
-	wasPressedFor1m = onButton.pressedFor(LONG_PRESS);
+	wasPressedForLongTime = onButton.pressedFor(LONG_PRESS);
 	updateOutput();
 }
