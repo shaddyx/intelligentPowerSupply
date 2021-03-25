@@ -12,14 +12,16 @@
 enum {Root, Main, Help, About, M1, M2, M3, MM1, MM2, MM3};
 MenuItem items[] = {
 	MenuItem("Main", Root, Main, true),
+		MenuItem("..", Main, Root, true),
+		MenuItem("M1", Main, MM1),
+		MenuItem("M2", Main, MM2),
+		MenuItem("M3", Main, MM3),
 	MenuItem("Help", Root, Help, true),
+		MenuItem("..", Help, Root, true),
+		MenuItem("About", Help, About),
 	MenuItem("1", Root, M1),
 	MenuItem("2", Root, M2),
 	MenuItem("3", Root, M3),
-	MenuItem("M1", Main, MM1),
-	MenuItem("M2", Main, MM2),
-	MenuItem("M3", Main, MM3),
-	MenuItem("About", Help, About)
 };
 Menu<array_len(items)> menu(items);
 Display display;

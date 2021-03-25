@@ -51,15 +51,6 @@ class Menu{
             return -1;
         }
 
-        int findId(int id){
-            for (int i=0; i<N; i++){
-                if (items[i].id == id){
-                    return i;
-                }
-            }
-            return -1;
-        }
-
         void next(){
             int number = countCurrentType();
             if (current < number - 1){
