@@ -11,7 +11,6 @@ class Menu{
         int current_type = 0;
         int screen_cursor = 0;
         int screen_size = 2;
-
         Menu(MenuItem (&items)[N]):
 
         items(items)
@@ -26,7 +25,7 @@ class Menu{
             menu_debug.info("OK:" + items[0].caption);
         }
 
-        int countCyrrentType(){
+        int countCurrentType(){
             return countType(current_type);
         }
         int countType(int type){
@@ -62,43 +61,47 @@ class Menu{
         }
 
         void next(){
-            auto res = findType(current_type, current + 1);
-            if (res != -1){
-                current = res;
+            int number = countCurrentType();
+            if (current < number - 1){
+                current ++;
             }
         }
 
         void prev(){
-            auto res = findType(current_type, current - 1);
-            if (res != -1){
-                current = res;
+            if (current > 0){
+                current --;
             }
         }
         
         void enter(){
-            auto currentItem = items[current];
-            auto res = findType(currentItem.id);
-            if (res != -1){
-                current = res;
-            }
+            // auto currentItem = items[current];
+            // auto res = findType(currentItem.id);
+            // current_type = 
         }
 
         int getSelectedId(){
-            auto res = findType(current_type, current);
-            if (res == -1){
+            auto currentElement = findCurrent();
+            if (currentElement == 0){
                 return -1;
             }
-            return items[res].id;
+            return currentElement -> id;
+        }
+
+        MenuItem * findCurrent(){
+            auto res = findType(current_type, current);
+            if (res == -1){
+                return 0;
+            }
+            return & items[res];
         }
 
         MenuItem * getScreenLine(int line){
-            int number = countType(current_type);
-            
-            while (screen_cursor < current - screen_size){
+            int number = countCurrentType();
+            while (screen_cursor < current - screen_size + 1){
                 screen_cursor ++;
             }
             
-            while (screen_cursor > current + screen_size || screen_cursor > number){
+            while (screen_cursor >= current + screen_size - 1 || screen_cursor >= number){
                 screen_cursor --;
             }
 
