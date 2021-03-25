@@ -1,0 +1,25 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include <SoftwareWire.h>
+#include <Adafruit_MCP4725.h>
+
+//SoftwareWire myWire(7, 6, true, false);
+//Adafruit_MCP4725 dac;
+
+void setup(){
+	// Serial.begin(115200);
+	// auto started = dac.begin(0x60);
+	// Serial.println("Detected: " + String(started));
+	// delay(2500);
+}
+
+uint16_t val = 0;
+void loop(){
+	// delay(100);
+	// auto res = dac.setVoltage(val, false, 100000);
+	// Serial.println("Percentage: " + String(val) + " r: " + res);
+	// val += 10;
+	// if (val >= 4096){
+	// 	val = 0;
+	// }
+}
