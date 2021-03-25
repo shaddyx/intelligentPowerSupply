@@ -6,10 +6,12 @@ class MenuItem{
         String caption;
         int type;
         int id;
-        MenuItem(String caption, int type, int id):
+        bool canEnter;
+        MenuItem(String caption, int type, int id, bool canEnter = false):
         caption(caption),
         type(type),
-        id(id)
+        id(id),
+        canEnter(canEnter)
         {}
 
 };

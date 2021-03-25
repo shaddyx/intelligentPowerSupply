@@ -41,8 +41,8 @@ class Menu{
         int findType(int type, int number){
             int num = -1;
             for (int i=0; i<N; i++){
-                    num ++;
                 if (items[i].type == type){
+                    num ++;
                     if (num == number){
                         return i;
                     }
@@ -74,9 +74,15 @@ class Menu{
         }
         
         void enter(){
-            // auto currentItem = items[current];
-            // auto res = findType(currentItem.id);
-            // current_type = 
+            auto menuItem = findCurrent();
+            if (menuItem != 0){
+                if (menuItem->canEnter){
+                    menu_debug.info("Old current_type: " + String(current_type) + " new: " + menuItem->id);
+                    current_type = menuItem->id;
+                    current = 0;
+                    screen_cursor = 0;
+                }
+            }
         }
 
         int getSelectedId(){

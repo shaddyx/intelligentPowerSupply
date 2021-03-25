@@ -13,3 +13,5 @@
 
 #define ENCODER_CLK 6
 #define ENCODER_DT 5
+
+#define ENTER_BUTTON_PIN 7

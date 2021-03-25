@@ -7,15 +7,18 @@
 #include "display/menu.h"
 #include "display/MenuDisplay.h"
 #include "encoder/encoder.h"
+#include "display/button.h"
 
-
-enum {Root, Main, Help, About, M1, M2, M3};
+enum {Root, Main, Help, About, M1, M2, M3, MM1, MM2, MM3};
 MenuItem items[] = {
-	MenuItem("Main", Root, Main),
-	MenuItem("Help", Root, Help),
+	MenuItem("Main", Root, Main, true),
+	MenuItem("Help", Root, Help, true),
 	MenuItem("1", Root, M1),
 	MenuItem("2", Root, M2),
 	MenuItem("3", Root, M3),
+	MenuItem("M1", Main, MM1),
+	MenuItem("M2", Main, MM2),
+	MenuItem("M3", Main, MM3),
 	MenuItem("About", Help, About)
 };
 Menu<array_len(items)> menu(items);
@@ -23,15 +26,18 @@ Display display;
 Debug debug("Main");
 MenuDisplay<array_len(items)> menuDisplay(display, menu);
 Encoder encoder(ENCODER_CLK, ENCODER_DT);
+SupplyButton enter_button(ENTER_BUTTON_PIN);
 
 void setup(){
 	debug.info("Initializing (" + String(menu.getSize()) + ")");
 	display.init();
 	menu.init();
+	enter_button.poll();
 	debug.info("Init complete");
 }
 
 void loop(){
+	enter_button.poll();
 	encoder.poll();
 	menuDisplay.poll();
 
@@ -43,4 +49,9 @@ void loop(){
 		debug.info("Counterclockwise:");
 		menu.prev();
 	}
+	if (enter_button.pressed()){
+		debug.info("Entering menu item: " + menu.findCurrent()->caption);
+		menu.enter();
+	}
+
 }
