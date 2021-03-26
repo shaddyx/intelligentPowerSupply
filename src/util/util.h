@@ -1,13 +1,21 @@
 #pragma once
-// A callback contains both a function and a pointer to arbitrary data
-// that will be passed as argument to the function.
-struct Callback {
-    Callback(void (*f)() = 0)
-        : function(f){}
-    void (*function)();
+class Callback {
+    void (*f_ptr)();
+    void operator()(){
+        (*f_ptr)();
+    }
 };
-
 #define CB(name) void(*name)()
 
 
 #define array_len(x)  (sizeof(x) / sizeof((x)[0]))
+
+template <class T>
+class ClassCallback{
+    public:
+        T * pthis;
+        void (T::*f_ptr)();
+        void operator()(){
+            (*pthis.*f_ptr)();
+        }
+};

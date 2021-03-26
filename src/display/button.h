@@ -1,3 +1,4 @@
+#pragma once
 
 #include <JC_Button.h>   
 

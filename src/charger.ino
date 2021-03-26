@@ -8,6 +8,7 @@
 #include "display/MenuDisplay.h"
 #include "encoder/encoder.h"
 #include "display/button.h"
+#include "state/main_state_machine.h"
 
 enum {Root, Main, Help, About, M1, M2, M3, MM1, MM2, MM3};
 MenuItem items[] = {
@@ -29,12 +30,14 @@ Debug debug("Main");
 MenuDisplay<array_len(items)> menuDisplay(display, menu);
 Encoder encoder(ENCODER_CLK, ENCODER_DT);
 SupplyButton enter_button(ENTER_BUTTON_PIN);
+MainStateMachine mstateMachine;
 
 void setup(){
 	debug.info("Initializing (" + String(menu.getSize()) + ")");
 	display.init();
 	menu.init();
 	enter_button.poll();
+	mstateMachine.init();
 	debug.info("Init complete");
 }
 
@@ -42,6 +45,7 @@ void loop(){
 	enter_button.poll();
 	encoder.poll();
 	menuDisplay.poll();
+	menu.poll();
 
 	if (encoder.is_right()){
 		debug.info("Clockwise");

@@ -12,7 +12,6 @@ class Menu{
         int screen_cursor = 0;
         int screen_size = 2;
         Menu(MenuItem (&items)[N]):
-
         items(items)
         {}
 
@@ -108,7 +107,9 @@ class Menu{
             }
             return &items[i];
         }
-
+        void poll(){
+            
+        }
     private:
         MenuItem (&items)[N];
 };
