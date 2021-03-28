@@ -10,27 +10,22 @@
 #include "display/button.h"
 #include "state/state_machine.h"
 #include "display/displayParam.h"
+#include "supply/power_control.h"
 
-enum {Root, Main, Help, About, M1, M2, M3, MM1, MM2, MM3, MVOLTAGE, MCURRENT};
+enum {Root, MVOLTAGE, MCURRENT, Charge, CC, CV, START_CHARGE};
 MenuItem items[] = {
 	MenuItem("V", Root, MVOLTAGE),
 	MenuItem("C", Root, MCURRENT),
-	MenuItem("Main", Root, Main, true),
-		MenuItem("..", Main, Root, true),
-		MenuItem("M1", Main, MM1),
-		MenuItem("M2", Main, MM2),
-		MenuItem("M3", Main, MM3),
-	MenuItem("Help", Root, Help, true),
-		MenuItem("..", Help, Root, true),
-		MenuItem("About", Help, About),
-	MenuItem("1", Root, M1),
-	MenuItem("2", Root, M2),
-	MenuItem("3", Root, M3),
+	MenuItem("Charge", Root, Charge, true),
+		MenuItem("..", Charge, Root, true),
+		MenuItem("CC", Charge, CC),
+		MenuItem("CV", Charge, CV),
+	MenuItem("Start charge", Root, START_CHARGE)
 };
 
 Menu<array_len(items)> menu(items);
 Display display;
-Debug debug("Main");
+Debug debug("Charge");
 MenuDisplay<array_len(items)> menuDisplay(display, menu);
 Encoder encoder(ENCODER_CLK, ENCODER_DT);
 SupplyButton enter_button(ENTER_BUTTON_PIN);
@@ -38,6 +33,7 @@ SupplyButton enter_button(ENTER_BUTTON_PIN);
 State STATE_IDLE;
 State STATE_CONFIG_VOLTAGE;
 State STATE_CONFIG_CURRENT;
+PowerControl power;
 
 StateMachine mstateMachine(&STATE_IDLE);
 
@@ -82,7 +78,7 @@ void processMenuItemEnter(MenuItem * item){
 	}
 }
 
-void processMainMenu(){
+void processChargeMenu(){
 	if (encoder.is_right()){
 		menu.next();
 	}
@@ -97,7 +93,7 @@ void processMainMenu(){
 	}
 	menuDisplay.poll();
 }
-void checkExitToMain(){
+void checkExitToCharge(){
 	if (enter_button.pressed()){
 		debug.info("Exiting");
 		menuDisplay.needRefresh = true;
@@ -107,19 +103,32 @@ void checkExitToMain(){
 
 void processStateMachine(){
 	if (mstateMachine.current == &STATE_IDLE){
-		processMainMenu();
+		processChargeMenu();
 	} else if (mstateMachine.current == &STATE_CONFIG_VOLTAGE){
 		voltage.poll();
-		checkExitToMain();
+		checkExitToCharge();
 	} else if (mstateMachine.current == &STATE_CONFIG_CURRENT){
 		current.poll();
-		checkExitToMain();
+		checkExitToCharge();
 	}
 }
-
+float a = 0;
+int incr = 5;
 void loop(){
 	enter_button.poll();
 	encoder.poll();
+	a += incr;
+	if (a >= 100){
+		incr = -5;
+	}
+	if (a <= 0){
+		incr = 5;
+	}
+	power.percentage = a;
+	power.poll();
+	delay(400);
+
+	
 	processStateMachine();
 	if (mstateMachine.isChanged()){
 		debug.info("State was changed");

@@ -4,6 +4,7 @@
 #define CONFIG_DEBUG_LEVEL INFO
 
 
+
 //          Display configuration
 
 #define CONF_DISPLAY_ADDRESS 63
@@ -15,3 +16,5 @@
 #define ENCODER_DT 5
 
 #define ENTER_BUTTON_PIN 7
+
+#define MAX_VOLTAGE 20
