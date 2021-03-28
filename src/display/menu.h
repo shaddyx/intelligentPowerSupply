@@ -63,7 +63,7 @@ class Menu{
             }
         }
         
-        void enter(){
+        bool enter(){
             auto menuItem = findCurrent();
             if (menuItem != 0){
                 if (menuItem->canEnter){
@@ -71,8 +71,10 @@ class Menu{
                     current_type = menuItem->id;
                     current = 0;
                     screen_cursor = 0;
+                    return true;
                 }
             }
+            return false;
         }
 
         int getSelectedId(){
@@ -106,9 +108,6 @@ class Menu{
                 return 0;
             }
             return &items[i];
-        }
-        void poll(){
-            
         }
     private:
         MenuItem (&items)[N];

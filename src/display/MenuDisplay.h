@@ -8,6 +8,7 @@ Debug menudisplay_debug("MenuDisplay");
 template <int N>
 class MenuDisplay{
     public:
+    bool needRefresh = true;
     MenuDisplay(Display & display, Menu<N> & menu):
     display(display),
     menu(menu){
@@ -17,6 +18,9 @@ class MenuDisplay{
     void poll(){
         auto id = menu.getSelectedId();
         if (oldSelectedId != id){
+            needRefresh = true;
+        }
+        if (needRefresh){
             display.clear();
             for (int i=0; i<CONF_DISPLAY_Y_SIZE; i++){
                 MenuItem * m = menu.getScreenLine(i);
@@ -31,6 +35,7 @@ class MenuDisplay{
                 }
             }
             oldSelectedId = id;
+            needRefresh = false;
         }
     }
     void clear(){

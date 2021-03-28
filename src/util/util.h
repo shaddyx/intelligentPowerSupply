@@ -6,8 +6,6 @@ class Callback {
     }
 };
 #define CB(name) void(*name)()
-
-
 #define array_len(x)  (sizeof(x) / sizeof((x)[0]))
 
 template <class T>
@@ -19,3 +17,5 @@ class ClassCallback{
             (*pthis.*f_ptr)();
         }
 };
+
+#define nil 0
