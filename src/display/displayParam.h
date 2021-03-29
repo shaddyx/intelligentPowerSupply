@@ -4,9 +4,8 @@
 #include "debug.h"
 Debug displayparam_debug("DisplayParam");
 template <class T>
-class DisplayParam {
+class DisplayParam: public DisplayScreen{
     public:
-        bool needRefresh = true;
         DisplayParam(String caption, Display * display, Encoder * encoder, T current, T minValue, T maxValue, T increment, T fastIncrement):
         caption(caption),
         display(display),

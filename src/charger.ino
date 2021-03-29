@@ -12,14 +12,17 @@
 #include "display/displayParam.h"
 #include "supply/power_control.h"
 
-enum {Root, MVOLTAGE, MCURRENT, Charge, CC, CV, START_CHARGE};
+enum {Root, MVOLTAGE, MCURRENT, CHARGE, CC, CV, START_CHARGE, MCONFIG, MCALIBRATE};
 MenuItem items[] = {
 	MenuItem("V", Root, MVOLTAGE),
 	MenuItem("C", Root, MCURRENT),
-	MenuItem("Charge", Root, Charge, true),
-		MenuItem("..", Charge, Root, true),
-		MenuItem("CC", Charge, CC),
-		MenuItem("CV", Charge, CV),
+	MenuItem("Charge", Root, CHARGE, true),
+		MenuItem("..", CHARGE, Root, true),
+		MenuItem("CC", CHARGE, CC),
+		MenuItem("CV", CHARGE, CV),
+	MenuItem("Config", Root, MCONFIG, true),
+		MenuItem("..", MCONFIG, Root, true),
+		MenuItem("Calibrate", MCONFIG, MCALIBRATE),
 	MenuItem("Start charge", Root, START_CHARGE)
 };
 
@@ -29,14 +32,13 @@ Debug debug("Charge");
 MenuDisplay<array_len(items)> menuDisplay(display, menu);
 Encoder encoder(ENCODER_CLK, ENCODER_DT);
 SupplyButton enter_button(ENTER_BUTTON_PIN);
-
 State STATE_IDLE;
 State STATE_CONFIG_VOLTAGE;
 State STATE_CONFIG_CURRENT;
-PowerControl power;
+State STATE_CALIBRATING;
 
+PowerControl power(CONF_DAC_ADDRESS, CONF_VOLTAGE_CHECK_PIN, CONF_MAX_VOLTAGE);
 StateMachine mstateMachine(&STATE_IDLE);
-
 DisplayParam<float> voltage(String("Voltage"), &display, &encoder, 0, 0, 25, 0.1, 1);
 DisplayParam<float> current(String("Current"), &display, &encoder, 0, 0, 10, 0.1, 1);
 
@@ -54,18 +56,29 @@ void updateVoltageAndCurrent(){
 	findItem(MCURRENT) -> caption = "C: " + String (current.current);
 }
 
+void initComponents(){
+	display.add_component(&voltage);
+	display.add_component(&current);
+	display.add_component(&menuDisplay);
+}
+
 void setup(){
 	debug.info("Initializing (" + String(menu.getSize()) + ")");
+	initComponents();
 	display.init();
 	menu.init();
 	enter_button.poll();
 	mstateMachine.init();
 	STATE_IDLE.transitions.add(&STATE_CONFIG_VOLTAGE);
 	STATE_IDLE.transitions.add(&STATE_CONFIG_CURRENT);
+	STATE_IDLE.transitions.add(&STATE_CALIBRATING);
 	STATE_CONFIG_VOLTAGE.transitions.add(&STATE_IDLE);
 	STATE_CONFIG_CURRENT.transitions.add(&STATE_IDLE);
+	STATE_CALIBRATING.transitions.add(&STATE_IDLE);
 
 	updateVoltageAndCurrent();
+	debug.info("Calibrating");
+	power.calibrate();
 	debug.info("Init complete");
 }
 
@@ -75,10 +88,12 @@ void processMenuItemEnter(MenuItem * item){
 	} else if (item->id == MCURRENT){
 		debug.info("current menu");
 		mstateMachine.changeState(&STATE_CONFIG_CURRENT);
+	} else if (item->id == MCALIBRATE){
+		power.calibrate();
 	}
 }
 
-void processChargeMenu(){
+void processMainMenu(){
 	if (encoder.is_right()){
 		menu.next();
 	}
@@ -93,7 +108,7 @@ void processChargeMenu(){
 	}
 	menuDisplay.poll();
 }
-void checkExitToCharge(){
+void checkExitToMainMenu(){
 	if (enter_button.pressed()){
 		debug.info("Exiting");
 		menuDisplay.needRefresh = true;
@@ -103,38 +118,36 @@ void checkExitToCharge(){
 
 void processStateMachine(){
 	if (mstateMachine.current == &STATE_IDLE){
-		processChargeMenu();
+		processMainMenu();
 	} else if (mstateMachine.current == &STATE_CONFIG_VOLTAGE){
 		voltage.poll();
-		checkExitToCharge();
+		checkExitToMainMenu();
 	} else if (mstateMachine.current == &STATE_CONFIG_CURRENT){
 		current.poll();
-		checkExitToCharge();
+		checkExitToMainMenu();
 	}
 }
-float a = 0;
+float a = 100;
 int incr = 5;
 void loop(){
 	enter_button.poll();
 	encoder.poll();
-	a += incr;
-	if (a >= 100){
-		incr = -5;
-	}
-	if (a <= 0){
-		incr = 5;
-	}
+	// a += incr;
+	// if (a >= 100){
+	// 	incr = -5;
+	// }
+	// if (a <= 0){
+	// 	incr = 5;
+	// }
 	power.percentage = a;
 	power.poll();
-	delay(400);
+	//delay(400);
 
 	
 	processStateMachine();
 	if (mstateMachine.isChanged()){
 		debug.info("State was changed");
-		voltage.needRefresh = true;
-		current.needRefresh = true;
-		menuDisplay.needRefresh = true;
+		display.refresh_all();
 		mstateMachine.unHandledStateChange();
 	}
 	updateVoltageAndCurrent();

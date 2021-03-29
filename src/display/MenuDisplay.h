@@ -6,9 +6,8 @@
 
 Debug menudisplay_debug("MenuDisplay");
 template <int N>
-class MenuDisplay{
+class MenuDisplay: public DisplayScreen{
     public:
-    bool needRefresh = true;
     MenuDisplay(Display & display, Menu<N> & menu):
     display(display),
     menu(menu){
