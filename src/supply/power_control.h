@@ -16,6 +16,7 @@ class PowerControl{
         checkInterval(10),
         MCP(mcp_address),
         voltage_in_pin(voltage_control_pin),
+        lastError(""),
         max_voltage(max_voltage){}
         
         void init(){
@@ -30,15 +31,19 @@ class PowerControl{
             init();
             if (!calibrating){
                 if (error){
-                    log_info(debug_pc, "Error");
+                    log_info(debug_pc, "Error: " + lastError);
                     return;
                 }
                 if (value >= calibration.max_percentage){
                     value = calibration.max_percentage;
                 }
             }
+            if (value < 0){
+                value = 0;
+            }
             auto result = MCP.setPercentage(value);
             if (result){
+                setError("set percentage error overload:" + String(value));
                 error = true;
             }
         }
@@ -48,9 +53,6 @@ class PowerControl{
             if (!calibrating){
                 if (checkInterval.poll()){
                     auto current = get_current_voltage();
-                    if (current <= CONF_MIN_VOLTAGE){
-                        return;
-                    }
                     auto increment = target_voltage - current;
                     increment = increment / 5;
                     percentage += increment;
@@ -99,7 +101,7 @@ class PowerControl{
                 if (raw >= CONF_MAX_ADC - 10){
                     log_info(debug_pc, "Calibration done due to overload:" + String(i));
                     delay(4000);
-                    error = true;
+                    setError("Calibration error overload");
                 }
                 delay(50);
             }
@@ -113,9 +115,14 @@ class PowerControl{
         }
 
     private:
+        void setError(String errorToSet){
+            lastError = errorToSet;
+            error = true;
+        }
         TimeInterval checkInterval;
         MCP4725 MCP;
         int voltage_in_pin;
+        String lastError;
         float max_voltage;
         bool initialized = false;
     public:
@@ -125,5 +132,6 @@ class PowerControl{
         float percentage = 0;
         float target_voltage = 0;
         bool error = false;
+        
         
 };
