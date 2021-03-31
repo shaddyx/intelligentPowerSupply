@@ -1,9 +1,7 @@
 #pragma once
 #include "menu_item.h"
 #include "debug.h"
-
-
-Debug menu_debug("Menu");
+DebugModule(debug_menu, "Menu");
 template<int N>
 class Menu{
     public:
@@ -20,8 +18,8 @@ class Menu{
         }
 
         void init(){
-            menu_debug.info("Initializing menu");
-            menu_debug.info("OK:" + items[0].caption);
+            log_info(debug_menu, "Initializing menu");
+            log_info(debug_menu, "OK:" + items[0].caption);
         }
 
         int countCurrentType(){
@@ -67,7 +65,7 @@ class Menu{
             auto menuItem = findCurrent();
             if (menuItem != 0){
                 if (menuItem->canEnter){
-                    menu_debug.info("Old current_type: " + String(current_type) + " new: " + menuItem->id);
+                    log_info(debug_menu, "Old current_type: " + String(current_type) + " new: " + menuItem->id);
                     current_type = menuItem->id;
                     current = 0;
                     screen_cursor = 0;

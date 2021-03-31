@@ -3,13 +3,13 @@
 #include <MCP4725.h>
 #include "config.h"
 #include "util/timer.h"
+DebugModule(debug_pc, "PowerControl");
 struct PowerCalibration{
     float max_percentage = 0;
     int zero_raw;
     int max_raw;
 };
 
-Debug power_control_debug("PowerControl");
 class PowerControl{
     public:
         PowerControl(int mcp_address, int voltage_control_pin, float max_voltage):
@@ -20,7 +20,7 @@ class PowerControl{
         
         void init(){
             if (!initialized){
-                power_control_debug.info("Initializing mcp");
+                log_info(debug_pc, "Initializing mcp");
                 MCP.begin();
                 pinMode(voltage_in_pin, INPUT);
                 initialized = true;
@@ -29,12 +29,16 @@ class PowerControl{
         void setPercentage(float value){
             init();
             if (!calibrating){
+                if (error){
+                    log_info(debug_pc, "Error");
+                    return;
+                }
                 if (value >= calibration.max_percentage){
                     value = calibration.max_percentage;
                 }
             }
             auto result = MCP.setPercentage(value);
-            if (!result){
+            if (result){
                 error = true;
             }
         }
@@ -50,8 +54,8 @@ class PowerControl{
                     auto increment = target_voltage - current;
                     increment = increment / 5;
                     percentage += increment;
-                    if (abs(increment) > 0.1){
-                        power_control_debug.info("changed " + String(percentage) + " by " + String(increment) );
+                    if (abs(increment) > 0.05){
+                        log_info(debug_pc, "changed " + String(percentage) + " by " + String(increment));
                         if (percentage > 100){
                             percentage = 100;
                         }
@@ -59,13 +63,11 @@ class PowerControl{
                             percentage = 0;
                         }
                     }
-                    
-                    
                 }
                 setPercentage(percentage);
             }
             
-            //power_control_debug.info("Power control[" + String(percentage) + "]: " + String(result));
+            //log_info("Power control[" + String(percentage) + "]: " + String(result));
         }
 
         int get_raw_value(){
@@ -77,7 +79,7 @@ class PowerControl{
         }
 
         float get_current_voltage(){
-            auto k = (float) CONF_MIN_VOLTAGE / calibration.zero_raw;
+            auto k = (float) CONF_MAX_VOLTAGE / calibration.max_raw;
             return get_raw_value() * k;
         }
 
@@ -95,26 +97,27 @@ class PowerControl{
                 calibration.max_percentage = i;
                 auto raw = get_raw_value();
                 if (raw >= CONF_MAX_ADC - 10){
-                    power_control_debug.info("Calibration done due to overload:" + String(i));
-                    break;
+                    log_info(debug_pc, "Calibration done due to overload:" + String(i));
+                    delay(4000);
+                    error = true;
                 }
                 delay(50);
             }
             calibration.max_raw = get_raw_value();
-            if (calibration.max_raw >= CONF_MAX_ADC - 10){
-                calibration.max_raw = CONF_MAX_ADC - 10;
+            if (calibration.max_raw >= CONF_MAX_ADC){
+                calibration.max_raw = CONF_MAX_ADC;
             }
             setPercentage(0);
             calibrating = false;
-            power_control_debug.info("Calibration done (z:" + String(calibration.zero_raw) + " m:" + String(calibration.max_raw) + " mp:" + String(calibration.max_percentage) + ")");
+            log_info(debug_pc, "Calibration done (z:" + String(calibration.zero_raw) + " m:" + String(calibration.max_raw) + " mp:" + String(calibration.max_percentage) + ")");
         }
 
     private:
+        TimeInterval checkInterval;
         MCP4725 MCP;
         int voltage_in_pin;
         float max_voltage;
         bool initialized = false;
-        TimeInterval checkInterval;
     public:
         PowerCalibration calibration;
         bool calibrated = false;

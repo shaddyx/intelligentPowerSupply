@@ -12,7 +12,7 @@
 #include "display/displayParam.h"
 #include "supply/power_control.h"
 #include "display/displayInfo.h"
-
+DebugModule(debug_main, "Main");
 enum {Root, MVOLTAGE, MCURRENT, CHARGE, CC, CV, START_CHARGE, MCONFIG, MCALIBRATE};
 MenuItem items[] = {
 	MenuItem("V", Root, MVOLTAGE),
@@ -29,7 +29,6 @@ MenuItem items[] = {
 
 Menu<array_len(items)> menu(items);
 Display display;
-Debug debug("Charge");
 MenuDisplay<array_len(items)> menuDisplay(display, menu);
 Encoder encoder(ENCODER_CLK, ENCODER_DT);
 SupplyButton enter_button(ENTER_BUTTON_PIN);
@@ -68,7 +67,7 @@ void initComponents(){
 }
 
 void setup(){
-	debug.info("Initializing (" + String(menu.getSize()) + ")");
+	log_info(debug_main, "Initializing (" + String(menu.getSize()) + ")");
 	initComponents();
 	display.init();
 	menu.init();
@@ -84,16 +83,16 @@ void setup(){
 	STATE_CALIBRATING.transitions.add(&STATE_IDLE);
 
 	updateVoltageAndCurrent();
-	debug.info("Calibrating");
+	log_info(debug_main, "Calibrating");
 	power.calibrate();
-	debug.info("Init complete");
+	log_info(debug_main, "Init complete");
 }
 
 void processMenuItemEnter(MenuItem * item){
 	if (item -> id == MVOLTAGE){
 		mstateMachine.changeState(&STATE_CONFIG_VOLTAGE);
 	} else if (item->id == MCURRENT){
-		debug.info("current menu");
+		log_info(debug_main, "current menu");
 		mstateMachine.changeState(&STATE_CONFIG_CURRENT);
 	} else if (item->id == MCALIBRATE){
 		power.calibrate();
@@ -114,16 +113,19 @@ void processMainMenu(){
 	if (enter_button.pressed()){
 		idle_timer.start();
 		mstateMachine.changeState(&STATE_IDLE);
-		debug.info("Entering menu item: " + menu.findCurrent()->caption);
+		log_info(debug_main, "Entering menu item: " + menu.findCurrent()->caption);
 		if (!menu.enter()){
 			processMenuItemEnter(menu.findCurrent());
 		};
 	}
-	menuDisplay.poll();
+	if (mstateMachine.current == &STATE_IDLE){
+		menuDisplay.poll();
+	}
+	
 }
 void checkExitToMainMenu(){
 	if (enter_button.pressed()){
-		debug.info("Exiting");
+		log_info(debug_main, "Exiting");
 		menuDisplay.needRefresh = true;
 		mstateMachine.changeState(&STATE_IDLE);
 	}
@@ -142,23 +144,15 @@ void processStateMachine(){
 	}
 }
 
-int incr = 5;
 void loop(){
 	enter_button.poll();
 	encoder.poll();
-	// a += incr;
-	// if (a >= 100){
-	// 	incr = -5;
-	// }
-	// if (a <= 0){
-	// 	incr = 5;
-	// }
-	power.poll();
-	//delay(400);
 	displayInfo.c = 0;
 	displayInfo.v = power.get_current_voltage();
 	power.target_voltage = voltage.current;
+	power.poll();
 	if (idle_timer.poll()){
+		log_info(debug_main, "showing display");
 		mstateMachine.changeState(&STATE_DISPLAY_INFO);
 	}
 	if (mstateMachine.current == &STATE_DISPLAY_INFO){	
@@ -171,7 +165,7 @@ void loop(){
 		idle_timer.stop();
 	}
 	if (mstateMachine.isChanged()){
-		debug.info("State was changed");
+		log_info(debug_main, "State was changed");
 		display.refresh_all();
 		mstateMachine.unHandledStateChange();
 	}

@@ -1,7 +1,7 @@
 #pragma once
 #include "display/liquid_crystal_display2x2.h"
 #include "debug.h"
-Debug displayInfo_debug("DisplayInfo");
+#include "util/float_util.h"
 class DisplayInfo: public DisplayScreen{
     public:
         float v = 0;
@@ -12,15 +12,15 @@ class DisplayInfo: public DisplayScreen{
         }
         
         void poll(){
-            if (oldV != v || oldC != c){
+            if (oldV != FloatUtil::round2(v) || oldC != FloatUtil::round2(c)){
                 needRefresh = true;
             }
             if (needRefresh){
                 display->clear();
                 display->printLine(0, "V: " + String(v) + " C: " + String(c));
                 needRefresh = false;
-                oldV = v;
-                oldC = c;
+                oldV = FloatUtil::round2(v);
+                oldC = FloatUtil::round2(c);
             }
         }
 

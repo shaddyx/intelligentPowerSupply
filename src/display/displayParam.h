@@ -2,7 +2,7 @@
 #include "encoder/encoder.h"
 #include "display/liquid_crystal_display2x2.h"
 #include "debug.h"
-Debug displayparam_debug("DisplayParam");
+DebugModule(debug_dp, "StateMachine");
 template <class T>
 class DisplayParam: public DisplayScreen{
     public:
@@ -29,13 +29,13 @@ class DisplayParam: public DisplayScreen{
         void poll(){
             if (encoder->is_left()){
                 current += get_inc();
-                displayparam_debug.info("Increment");
+                log_info(debug_dp, "Increment");
                 if (current > maxValue){
                     current = maxValue;
                 }
                 needRefresh = true;
             } else if (encoder->is_right()){
-                displayparam_debug.info("Decrement");
+                log_info(debug_dp, "Decrement");
                 current -= get_inc();
                 if (current < minValue){
                     current = minValue;

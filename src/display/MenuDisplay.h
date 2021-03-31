@@ -3,8 +3,7 @@
 #include "menu_item.h"
 #include "debug.h"
 #include "display/liquid_crystal_display2x2.h"
-
-Debug menudisplay_debug("MenuDisplay");
+DebugModule(debug_menu_display, "MenuDisplay");
 template <int N>
 class MenuDisplay: public DisplayScreen{
     public:
@@ -26,7 +25,7 @@ class MenuDisplay: public DisplayScreen{
                 if (m == 0){
                     return;
                 }
-                //menudisplay_debug.info("capt: " + m -> caption + " sel: " + String(id) + " id: " + String(m -> id));
+                //log_info(debug_menu_display, "capt: " + m -> caption + " sel: " + String(id) + " id: " + String(m -> id));
                 if (id == m -> id){
                     display.printLine(i, m -> caption + "<");
                 } else {

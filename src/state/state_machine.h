@@ -3,8 +3,7 @@
 #include "debug.h"
 #include "util/util.h"
 #include <collections/SimpleList.h>
-Debug statemachine_debug("StateMachine");
-
+DebugModule(debug_sm, "StateMachine");
 class State {
     public:
         SimpleList<State *> transitions;
@@ -22,12 +21,12 @@ class StateMachine{
                 return false;
             }
             if (this -> current -> transitions.index_of(state) != -1){
-                statemachine_debug.info("Changing state");
+                log_info(debug_sm, "Changing state");
                 current = state;
                 pending.add(state);
                 return true;
             } else {
-                statemachine_debug.info("State change is not allowed");
+                log_info(debug_sm, "State change is not allowed");
                 return false;
             }
         }

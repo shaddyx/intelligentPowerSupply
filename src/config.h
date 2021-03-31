@@ -1,8 +1,8 @@
 #pragma once
 
 #define CONFIG_SERIAL_SPEED 115200
+#define CONFIG_DEBUG_ENABLED 1
 #define CONFIG_DEBUG_LEVEL INFO
-
 
 
 //          Display configuration
