@@ -15,9 +15,11 @@
 //          Voltage control configuration
 #define CONF_DAC_ADDRESS 0x60
 #define CONF_VOLTAGE_CHECK_PIN A0
+#define CONF_MIN_VOLTAGE 1.22
 #define CONF_MAX_VOLTAGE 12
 #define CONF_VOLTAGE_THRESHOLD 0.1
 #define CONF_MAX_ADC 1024
+
 
 #define ENCODER_CLK 6
 #define ENCODER_DT 5

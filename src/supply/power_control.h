@@ -40,16 +40,25 @@ class PowerControl{
 
         void poll(){
             init();
-            setPercentage(percentage);
+            if (!calibrating){
+                setPercentage(percentage);
+            }
+            
             //power_control_debug.info("Power control[" + String(percentage) + "]: " + String(result));
         }
 
         int get_raw_value(){
-            return analogRead(voltage_in_pin);
+            long res = 0;
+            for (int i=0; i<5; i++){
+                res += analogRead(voltage_in_pin);
+                delay(2);
+            }
+            return res / 5;
         }
 
         float get_current_voltage(){
-            return get_raw_value();
+            auto k = (float) CONF_MIN_VOLTAGE / calibration.zero_raw;
+            return get_raw_value() * k;
         }
 
         bool ready(){
@@ -75,6 +84,7 @@ class PowerControl{
             if (calibration.max_raw >= CONF_MAX_ADC - 10){
                 calibration.max_raw = CONF_MAX_ADC - 10;
             }
+            setPercentage(0);
             calibrating = false;
             power_control_debug.info("Calibration done (z:" + String(calibration.zero_raw) + " m:" + String(calibration.max_raw) + " mp:" + String(calibration.max_percentage) + ")");
         }

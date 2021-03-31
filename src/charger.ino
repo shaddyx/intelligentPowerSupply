@@ -11,6 +11,7 @@
 #include "state/state_machine.h"
 #include "display/displayParam.h"
 #include "supply/power_control.h"
+#include "display/displayInfo.h"
 
 enum {Root, MVOLTAGE, MCURRENT, CHARGE, CC, CV, START_CHARGE, MCONFIG, MCALIBRATE};
 MenuItem items[] = {
@@ -33,6 +34,7 @@ MenuDisplay<array_len(items)> menuDisplay(display, menu);
 Encoder encoder(ENCODER_CLK, ENCODER_DT);
 SupplyButton enter_button(ENTER_BUTTON_PIN);
 State STATE_IDLE;
+State STATE_DISPLAY_INFO;
 State STATE_CONFIG_VOLTAGE;
 State STATE_CONFIG_CURRENT;
 State STATE_CALIBRATING;
@@ -41,6 +43,8 @@ PowerControl power(CONF_DAC_ADDRESS, CONF_VOLTAGE_CHECK_PIN, CONF_MAX_VOLTAGE);
 StateMachine mstateMachine(&STATE_IDLE);
 DisplayParam<float> voltage(String("Voltage"), &display, &encoder, 0, 0, 25, 0.1, 1);
 DisplayParam<float> current(String("Current"), &display, &encoder, 0, 0, 10, 0.1, 1);
+DisplayInfo displayInfo(&display);
+TimeDelay idle_timer(5000);
 
 MenuItem * findItem(int id){
 	for (unsigned int i=0; i< array_len(items); i++){
@@ -60,6 +64,7 @@ void initComponents(){
 	display.add_component(&voltage);
 	display.add_component(&current);
 	display.add_component(&menuDisplay);
+	display.add_component(&displayInfo);
 }
 
 void setup(){
@@ -72,6 +77,8 @@ void setup(){
 	STATE_IDLE.transitions.add(&STATE_CONFIG_VOLTAGE);
 	STATE_IDLE.transitions.add(&STATE_CONFIG_CURRENT);
 	STATE_IDLE.transitions.add(&STATE_CALIBRATING);
+	STATE_IDLE.transitions.add(&STATE_DISPLAY_INFO);
+	STATE_DISPLAY_INFO.transitions.add(&STATE_IDLE);
 	STATE_CONFIG_VOLTAGE.transitions.add(&STATE_IDLE);
 	STATE_CONFIG_CURRENT.transitions.add(&STATE_IDLE);
 	STATE_CALIBRATING.transitions.add(&STATE_IDLE);
@@ -95,12 +102,17 @@ void processMenuItemEnter(MenuItem * item){
 
 void processMainMenu(){
 	if (encoder.is_right()){
+		mstateMachine.changeState(&STATE_IDLE);
 		menu.next();
+		idle_timer.start();
 	}
 	if (encoder.is_left()){
+		mstateMachine.changeState(&STATE_IDLE);
 		menu.prev();
+		idle_timer.start();
 	}
 	if (enter_button.pressed()){
+		idle_timer.start();
 		debug.info("Entering menu item: " + menu.findCurrent()->caption);
 		if (!menu.enter()){
 			processMenuItemEnter(menu.findCurrent());
@@ -116,8 +128,9 @@ void checkExitToMainMenu(){
 	}
 }
 
+
 void processStateMachine(){
-	if (mstateMachine.current == &STATE_IDLE){
+	if (mstateMachine.current == &STATE_IDLE || mstateMachine.current == &STATE_DISPLAY_INFO){
 		processMainMenu();
 	} else if (mstateMachine.current == &STATE_CONFIG_VOLTAGE){
 		voltage.poll();
@@ -127,7 +140,7 @@ void processStateMachine(){
 		checkExitToMainMenu();
 	}
 }
-float a = 100;
+
 int incr = 5;
 void loop(){
 	enter_button.poll();
@@ -139,12 +152,22 @@ void loop(){
 	// if (a <= 0){
 	// 	incr = 5;
 	// }
-	power.percentage = a;
 	power.poll();
 	//delay(400);
-
-	
+	displayInfo.c = 0;
+	displayInfo.v = power.get_current_voltage();
+	if (idle_timer.poll()){
+		mstateMachine.changeState(&STATE_DISPLAY_INFO);
+	}
+	if (mstateMachine.current == &STATE_DISPLAY_INFO){	
+		displayInfo.poll();
+	}
 	processStateMachine();
+	if (mstateMachine.current == &STATE_IDLE){
+		idle_timer.start_if_not();
+	} else {
+		idle_timer.stop();
+	}
 	if (mstateMachine.isChanged()){
 		debug.info("State was changed");
 		display.refresh_all();

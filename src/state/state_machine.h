@@ -18,6 +18,9 @@ class StateMachine{
         {}
         
         bool changeState(State * state){
+            if (this -> current == state){
+                return false;
+            }
             if (this -> current -> transitions.index_of(state) != -1){
                 statemachine_debug.info("Changing state");
                 current = state;
