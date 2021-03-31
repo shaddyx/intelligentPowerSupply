@@ -13,6 +13,7 @@ Debug power_control_debug("PowerControl");
 class PowerControl{
     public:
         PowerControl(int mcp_address, int voltage_control_pin, float max_voltage):
+        checkInterval(10),
         MCP(mcp_address),
         voltage_in_pin(voltage_control_pin),
         max_voltage(max_voltage){}
@@ -41,6 +42,26 @@ class PowerControl{
         void poll(){
             init();
             if (!calibrating){
+                if (checkInterval.poll()){
+                    auto current = get_current_voltage();
+                    if (current <= CONF_MIN_VOLTAGE){
+                        return;
+                    }
+                    auto increment = target_voltage - current;
+                    increment = increment / 5;
+                    percentage += increment;
+                    if (abs(increment) > 0.1){
+                        power_control_debug.info("changed " + String(percentage) + " by " + String(increment) );
+                        if (percentage > 100){
+                            percentage = 100;
+                        }
+                        if (percentage < 0){
+                            percentage = 0;
+                        }
+                    }
+                    
+                    
+                }
                 setPercentage(percentage);
             }
             
@@ -51,7 +72,6 @@ class PowerControl{
             long res = 0;
             for (int i=0; i<5; i++){
                 res += analogRead(voltage_in_pin);
-                delay(2);
             }
             return res / 5;
         }
@@ -68,7 +88,7 @@ class PowerControl{
         void calibrate(){
             calibrating = true;
             setPercentage(0);
-            delay(500);
+            delay(2500);
             calibration.zero_raw = get_raw_value();
             for (float i=0; i<=100; i+=0.5){
                 setPercentage(i);
@@ -94,6 +114,7 @@ class PowerControl{
         int voltage_in_pin;
         float max_voltage;
         bool initialized = false;
+        TimeInterval checkInterval;
     public:
         PowerCalibration calibration;
         bool calibrated = false;
@@ -101,4 +122,5 @@ class PowerControl{
         float percentage = 0;
         float target_voltage = 0;
         bool error = false;
+        
 };

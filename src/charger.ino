@@ -41,8 +41,8 @@ State STATE_CALIBRATING;
 
 PowerControl power(CONF_DAC_ADDRESS, CONF_VOLTAGE_CHECK_PIN, CONF_MAX_VOLTAGE);
 StateMachine mstateMachine(&STATE_IDLE);
-DisplayParam<float> voltage(String("Voltage"), &display, &encoder, 0, 0, 25, 0.1, 1);
-DisplayParam<float> current(String("Current"), &display, &encoder, 0, 0, 10, 0.1, 1);
+DisplayParam<float> voltage(String("Voltage"), &display, &encoder, 0, 0, CONF_MAX_VOLTAGE, 0.1, 1);
+DisplayParam<float> current(String("Current"), &display, &encoder, 0, 0, CONF_MAX_CURRENT, 0.1, 1);
 DisplayInfo displayInfo(&display);
 TimeDelay idle_timer(5000);
 
@@ -113,6 +113,7 @@ void processMainMenu(){
 	}
 	if (enter_button.pressed()){
 		idle_timer.start();
+		mstateMachine.changeState(&STATE_IDLE);
 		debug.info("Entering menu item: " + menu.findCurrent()->caption);
 		if (!menu.enter()){
 			processMenuItemEnter(menu.findCurrent());
@@ -156,6 +157,7 @@ void loop(){
 	//delay(400);
 	displayInfo.c = 0;
 	displayInfo.v = power.get_current_voltage();
+	power.target_voltage = voltage.current;
 	if (idle_timer.poll()){
 		mstateMachine.changeState(&STATE_DISPLAY_INFO);
 	}

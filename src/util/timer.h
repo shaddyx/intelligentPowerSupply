@@ -16,6 +16,9 @@ class TimeInterval{
 
         bool poll(){
             auto m = millis();
+            if (m < old){
+                old = m;
+            }
             if (m - old > period){
                 old = m;
                 return true;
@@ -56,6 +59,9 @@ class TimeDelay{
                 return false;
             }
             auto m = millis();
+            if (m < old){
+                old = m;
+            }
             if (m - old > period){
                 old = 0;
                 return true;
