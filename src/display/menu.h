@@ -60,6 +60,14 @@ class Menu{
                 current --;
             }
         }
+        MenuItem * findItem(int id){
+        for (unsigned int i=0; i < N; i++){
+            if (items[i].id == id){
+                return &items[i];
+            }
+        }
+        return 0;
+    }
         
         bool enter(){
             auto menuItem = findCurrent();

@@ -68,7 +68,6 @@ class PowerControl{
                 }
                 setPercentage(percentage);
             }
-            
             //log_info("Power control[" + String(percentage) + "]: " + String(result));
         }
 
@@ -119,6 +118,7 @@ class PowerControl{
             lastError = errorToSet;
             error = true;
         }
+        
         TimeInterval checkInterval;
         MCP4725 MCP;
         int voltage_in_pin;
@@ -132,6 +132,4 @@ class PowerControl{
         float percentage = 0;
         float target_voltage = 0;
         bool error = false;
-        
-        
 };

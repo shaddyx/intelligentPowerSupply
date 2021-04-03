@@ -45,18 +45,9 @@ DisplayParam<float> current(String("Current"), &display, &encoder, 0, 0, CONF_MA
 DisplayInfo displayInfo(&display);
 TimeDelay idle_timer(5000);
 
-MenuItem * findItem(int id){
-	for (unsigned int i=0; i< array_len(items); i++){
-		if (items[i].id == id){
-			return &items[i];
-		}
-	}
-	return 0;
-}
-
 void updateVoltageAndCurrent(){
-	findItem(MVOLTAGE) -> caption = "V: " + String (voltage.current);
-	findItem(MCURRENT) -> caption = "C: " + String (current.current);
+	menu.findItem(MVOLTAGE) -> caption = "V: " + String (voltage.current);
+	menu.findItem(MCURRENT) -> caption = "C: " + String (current.current);
 }
 
 void initComponents(){
@@ -123,6 +114,7 @@ void processMainMenu(){
 	}
 	
 }
+
 void checkExitToMainMenu(){
 	if (enter_button.pressed()){
 		log_info(debug_main, "Exiting");
@@ -130,7 +122,6 @@ void checkExitToMainMenu(){
 		mstateMachine.changeState(&STATE_IDLE);
 	}
 }
-
 
 void processStateMachine(){
 	if (mstateMachine.current == &STATE_IDLE || mstateMachine.current == &STATE_DISPLAY_INFO){
