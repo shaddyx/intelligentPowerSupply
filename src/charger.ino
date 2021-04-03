@@ -40,19 +40,19 @@ State STATE_CALIBRATING;
 
 PowerControl power(CONF_DAC_ADDRESS, CONF_VOLTAGE_CHECK_PIN, CONF_MAX_VOLTAGE);
 StateMachine mstateMachine(&STATE_IDLE);
-DisplayParam<float> voltage(String("Voltage"), &display, &encoder, 0, 0, CONF_MAX_VOLTAGE, 0.1, 1);
-DisplayParam<float> current(String("Current"), &display, &encoder, 0, 0, CONF_MAX_CURRENT, 0.1, 1);
+DisplayParam<float> voltage_editor(String("Voltage"), &display, &encoder, 0, 0, CONF_MAX_VOLTAGE, 0.1, 1);
+DisplayParam<float> current_editor(String("Current"), &display, &encoder, 0, 0, CONF_MAX_CURRENT, 0.1, 1);
 DisplayInfo displayInfo(&display);
 TimeDelay idle_timer(5000);
 
 void updateVoltageAndCurrent(){
-	menu.findItem(MVOLTAGE) -> caption = "V: " + String (voltage.current);
-	menu.findItem(MCURRENT) -> caption = "C: " + String (current.current);
+	menu.findItem(MVOLTAGE) -> caption = "V: " + String (voltage_editor.current);
+	menu.findItem(MCURRENT) -> caption = "C: " + String (current_editor.current);
 }
 
 void initComponents(){
-	display.add_component(&voltage);
-	display.add_component(&current);
+	display.add_component(&voltage_editor);
+	display.add_component(&current_editor);
 	display.add_component(&menuDisplay);
 	display.add_component(&displayInfo);
 }
@@ -127,10 +127,10 @@ void processStateMachine(){
 	if (mstateMachine.current == &STATE_IDLE || mstateMachine.current == &STATE_DISPLAY_INFO){
 		processMainMenu();
 	} else if (mstateMachine.current == &STATE_CONFIG_VOLTAGE){
-		voltage.poll();
+		voltage_editor.poll();
 		checkExitToMainMenu();
 	} else if (mstateMachine.current == &STATE_CONFIG_CURRENT){
-		current.poll();
+		current_editor.poll();
 		checkExitToMainMenu();
 	}
 }
@@ -140,7 +140,7 @@ void loop(){
 	encoder.poll();
 	displayInfo.c = 0;
 	displayInfo.v = power.get_current_voltage();
-	power.target_voltage = voltage.current;
+	power.target_voltage = voltage_editor.current;
 	power.poll();
 	if (idle_timer.poll()){
 		log_info(debug_main, "showing display");
