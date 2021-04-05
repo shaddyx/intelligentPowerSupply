@@ -81,6 +81,7 @@ void setup(){
 	log_info(debug_main, "Calibrating");
 	power.calibrate();
 	powerRelay.init();
+	powerRelay.on = true;
 	log_info(debug_main, "Init complete");
 }
 
@@ -147,10 +148,6 @@ void loop(){
 	displayInfo.v = power.get_current_voltage();
 	power.target_voltage = voltage_editor.current;
 	power.poll();
-	// if (simple_timer.poll()){
-	// 	log_info(debug_main, "timer");
-	// 	//powerRelay.on = !powerRelay.on;
-	// }
 	powerRelay.poll();
 	if (idle_timer.poll()){
 		log_info(debug_main, "showing display");
