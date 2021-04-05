@@ -12,6 +12,8 @@
 #include "display/displayParam.h"
 #include "supply/power_control.h"
 #include "display/displayInfo.h"
+#include "powerRelay.h"
+
 DebugModule(debug_main, "Main");
 enum {Root, MVOLTAGE, MCURRENT, CHARGE, CC, CV, START_CHARGE, MCONFIG, MCALIBRATE};
 MenuItem items[] = {
@@ -44,6 +46,8 @@ DisplayParam<float> voltage_editor(String("Voltage"), &display, &encoder, 0, 0, 
 DisplayParam<float> current_editor(String("Current"), &display, &encoder, 0, 0, CONF_MAX_CURRENT, 0.1, 1);
 DisplayInfo displayInfo(&display);
 TimeDelay idle_timer(5000);
+TimeInterval simple_timer(1000);
+PowerRelay powerRelay(CONF_POWER_RELAY_PIN);
 
 void updateVoltageAndCurrent(){
 	menu.findItem(MVOLTAGE) -> caption = "V: " + String (voltage_editor.current);
@@ -76,6 +80,7 @@ void setup(){
 	updateVoltageAndCurrent();
 	log_info(debug_main, "Calibrating");
 	power.calibrate();
+	powerRelay.init();
 	log_info(debug_main, "Init complete");
 }
 
@@ -142,6 +147,11 @@ void loop(){
 	displayInfo.v = power.get_current_voltage();
 	power.target_voltage = voltage_editor.current;
 	power.poll();
+	// if (simple_timer.poll()){
+	// 	log_info(debug_main, "timer");
+	// 	//powerRelay.on = !powerRelay.on;
+	// }
+	powerRelay.poll();
 	if (idle_timer.poll()){
 		log_info(debug_main, "showing display");
 		mstateMachine.changeState(&STATE_DISPLAY_INFO);

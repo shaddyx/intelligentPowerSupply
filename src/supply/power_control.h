@@ -57,7 +57,7 @@ class PowerControl{
                     increment = increment / 5;
                     percentage += increment;
                     if (abs(increment) > 0.05){
-                        log_info(debug_pc, "changed " + String(percentage) + " by " + String(increment));
+                        log_debug(debug_pc, "changed " + String(percentage) + " by " + String(increment));
                         if (percentage > 100){
                             percentage = 100;
                         }

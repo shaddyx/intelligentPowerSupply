@@ -21,6 +21,8 @@
 #define CONF_VOLTAGE_THRESHOLD 0.1
 #define CONF_MAX_ADC 1024
 
+#define CONF_POWER_RELAY_PIN 14
+
 
 #define ENCODER_CLK 6
 #define ENCODER_DT 5

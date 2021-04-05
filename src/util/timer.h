@@ -4,6 +4,7 @@
 class TimeInterval{
     private:
         unsigned long old = 0;
+        bool started = true;
         
     public:
         TimeInterval(long period):
@@ -14,7 +15,19 @@ class TimeInterval{
             old = millis();
         }
 
+        void stop(){
+            started = false;
+        }
+
+        void start(){
+            started = true;
+            old = millis();
+        }
+
         bool poll(){
+            if (!started){
+                return false;
+            }
             auto m = millis();
             if (m < old){
                 old = m;
