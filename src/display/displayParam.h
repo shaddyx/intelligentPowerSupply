@@ -49,21 +49,29 @@ class DisplayParam: public DisplayScreen{
         void update(){
             if (needRefresh){
                 display->clear();
-                display->printLine(0, caption + ": " + String (current));
+                display->printLine(0, caption + ": " + serialize(current));
                 needRefresh = false;
             }
         }
         
     private:
+        String serialize(int value){
+            return String(value);
+        }
+        
+        String serialize(float value){
+            return String(value);
+        }
+
         String caption;
         Display * display;
         Encoder * encoder;
     public:
         T current;
-    private:
         T minValue;
         T maxValue;
         T increment;
         T fastIncrement;
+    private:
         unsigned long last_ms = 0;
 };

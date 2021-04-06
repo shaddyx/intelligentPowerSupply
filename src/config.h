@@ -12,14 +12,34 @@
 #define CONF_DISPLAY_X_SIZE 16
 #define CONF_DISPLAY_Y_SIZE 2
 
+//  Buttons
+
+#define CONF_BUTTON_ON_OFF 2
+#define CONF_BUTTON_1 3
+#define CONF_BUTTON_2 4
+
 //          Voltage control configuration
 #define CONF_DAC_ADDRESS 0x60
 #define CONF_VOLTAGE_CHECK_PIN A0
 #define CONF_MIN_VOLTAGE 1.22
-#define CONF_MAX_VOLTAGE 12
+//#define CONF_MAX_VOLTAGE 12
 #define CONF_MAX_CURRENT 8
 #define CONF_VOLTAGE_THRESHOLD 0.1
 #define CONF_MAX_ADC 1024
+
+//          voltage resistors
+#define CONF_VOLTAGE_RESISTORS 0
+
+#if CONF_VOLTAGE_RESISTORS == 1
+    #define CONF_VOLTAGE_RESISTOR_1 81850
+    #define CONF_VOLTAGE_RESISTOR_2 15050
+    #define CONF_VOLTAGE_DIVIDER_K ((float)CONF_VOLTAGE_RESISTOR_1 / CONF_VOLTAGE_RESISTOR_2)
+#else
+    #define CONF_VOLTAGE_DIVIDER_K (14.26 / 2.12)
+#endif
+
+#define CONF_VREF_VOLTAGE   4.8
+
 
 #define CONF_POWER_RELAY_PIN 14
 

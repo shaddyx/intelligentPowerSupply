@@ -17,7 +17,7 @@ class DisplayInfo: public DisplayScreen{
             }
             if (needRefresh){
                 display->clear();
-                display->printLine(0, "V: " + String(v) + " C: " + String(c));
+                display->printLine(0, "V:" + FloatUtil::floatToString(v, 5, 2) + " C:" + FloatUtil::floatToString(c, 5, 2));
                 needRefresh = false;
                 oldV = FloatUtil::round2(v);
                 oldC = FloatUtil::round2(c);

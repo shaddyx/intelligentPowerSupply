@@ -34,15 +34,16 @@ Display display;
 MenuDisplay<array_len(items)> menuDisplay(display, menu);
 Encoder encoder(ENCODER_CLK, ENCODER_DT);
 SupplyButton enter_button(ENTER_BUTTON_PIN);
+SupplyButton on_off_button(CONF_BUTTON_ON_OFF);
 State STATE_IDLE;
 State STATE_DISPLAY_INFO;
 State STATE_CONFIG_VOLTAGE;
 State STATE_CONFIG_CURRENT;
 State STATE_CALIBRATING;
 
-PowerControl power(CONF_DAC_ADDRESS, CONF_VOLTAGE_CHECK_PIN, CONF_MAX_VOLTAGE);
+PowerControl power(CONF_DAC_ADDRESS, CONF_VOLTAGE_CHECK_PIN);
 StateMachine mstateMachine(&STATE_IDLE);
-DisplayParam<float> voltage_editor(String("Voltage"), &display, &encoder, 0, 0, CONF_MAX_VOLTAGE, 0.1, 1);
+DisplayParam<float> voltage_editor(String("Voltage"), &display, &encoder, 0, 0, 0, 0.1, 1);
 DisplayParam<float> current_editor(String("Current"), &display, &encoder, 0, 0, CONF_MAX_CURRENT, 0.1, 1);
 DisplayInfo displayInfo(&display);
 TimeDelay idle_timer(5000);
@@ -66,7 +67,8 @@ void setup(){
 	initComponents();
 	display.init();
 	menu.init();
-	enter_button.poll();
+	enter_button.init();
+	on_off_button.init();
 	mstateMachine.init();
 	STATE_IDLE.transitions.add(&STATE_CONFIG_VOLTAGE);
 	STATE_IDLE.transitions.add(&STATE_CONFIG_CURRENT);
@@ -79,9 +81,8 @@ void setup(){
 
 	updateVoltageAndCurrent();
 	log_info(debug_main, "Calibrating");
-	power.calibrate();
 	powerRelay.init();
-	powerRelay.on = true;
+	power.calibrate();
 	log_info(debug_main, "Init complete");
 }
 
@@ -141,14 +142,34 @@ void processStateMachine(){
 	}
 }
 
-void loop(){
+void processButtons(){
 	enter_button.poll();
+	on_off_button.poll();
+	if (on_off_button.pressed()){
+		powerRelay.on = !powerRelay.on;
+	}
+}
+
+void processEncoder(){
 	encoder.poll();
+}
+
+void processInfoDisplay(){
 	displayInfo.c = 0;
 	displayInfo.v = power.get_current_voltage();
+}
+
+void loop(){
+	processButtons();
+	processEncoder();
+	processInfoDisplay();
+
 	power.target_voltage = voltage_editor.current;
 	power.poll();
 	powerRelay.poll();
+	if (power.calibrated){
+		voltage_editor.maxValue = power.calibration.max_voltage;
+	}
 	if (idle_timer.poll()){
 		log_info(debug_main, "showing display");
 		mstateMachine.changeState(&STATE_DISPLAY_INFO);

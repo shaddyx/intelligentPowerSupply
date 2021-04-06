@@ -8,16 +8,16 @@ struct PowerCalibration{
     float max_percentage = 0;
     int zero_raw;
     int max_raw;
+    float max_voltage = 0;
 };
 
 class PowerControl{
     public:
-        PowerControl(int mcp_address, int voltage_control_pin, float max_voltage):
+        PowerControl(int mcp_address, int voltage_control_pin):
         checkInterval(10),
         MCP(mcp_address),
         voltage_in_pin(voltage_control_pin),
-        lastError(""),
-        max_voltage(max_voltage){}
+        lastError(""){}
         
         void init(){
             if (!initialized){
@@ -34,6 +34,9 @@ class PowerControl{
                     log_info(debug_pc, "Error: " + lastError);
                     return;
                 }
+                if (!calibration.max_percentage){
+                    setError("Error, not calibrated");
+                }
                 if (value >= calibration.max_percentage){
                     value = calibration.max_percentage;
                 }
@@ -43,8 +46,10 @@ class PowerControl{
             }
             auto result = MCP.setPercentage(value);
             if (result){
+                if (!error){
+                    log_info(debug_pc, "Error setting value: " + String(value));
+                }
                 setError("set percentage error overload:" + String(value));
-                error = true;
             }
         }
 
@@ -80,8 +85,8 @@ class PowerControl{
         }
 
         float get_current_voltage(){
-            auto k = (float) CONF_MAX_VOLTAGE / calibration.max_raw;
-            return get_raw_value() * k;
+            auto k = ((double) CONF_VREF_VOLTAGE / (double) CONF_MAX_ADC) * CONF_VOLTAGE_DIVIDER_K;
+            return (double) get_raw_value() * k;
         }
 
         bool ready(){
@@ -90,30 +95,46 @@ class PowerControl{
 
         void calibrate(){
             calibrating = true;
+            calibrated = false;
             setPercentage(0);
             delay(2500);
             calibration.zero_raw = get_raw_value();
-            for (float i=0; i<=100; i+=0.5){
-                setPercentage(i);
-                calibration.max_percentage = i;
-                auto raw = get_raw_value();
-                if (raw >= CONF_MAX_ADC - 10){
-                    log_info(debug_pc, "Calibration done due to overload:" + String(i));
-                    delay(4000);
-                    setError("Calibration error overload");
-                }
-                delay(50);
+            auto raw = set_calibration_value(50);
+            if (raw > (CONF_MAX_ADC / 2)){
+                setError("Calibration failed due to half overload: " + String(raw));
+                return;
             }
-            calibration.max_raw = get_raw_value();
+            raw = set_calibration_value(100);
+            calibration.max_raw = raw;
             if (calibration.max_raw >= CONF_MAX_ADC){
                 calibration.max_raw = CONF_MAX_ADC;
             }
+            calibration.max_voltage = get_current_voltage();
             setPercentage(0);
             calibrating = false;
-            log_info(debug_pc, "Calibration done (z:" + String(calibration.zero_raw) + " m:" + String(calibration.max_raw) + " mp:" + String(calibration.max_percentage) + ")");
+            log_info(debug_pc, "Calibration done (z:" + String(calibration.zero_raw) 
+            + " m:" + String(calibration.max_raw) 
+            + " mp:" + String(calibration.max_percentage) 
+            + " mv: " + String(calibration.max_voltage)+ ")");
+            calibrated = true;
         }
 
     private:
+        float set_calibration_value(float value){
+                setPercentage(value);
+                calibration.max_percentage = value;
+                delay(100);
+                auto raw = get_raw_value();
+                if (raw >= CONF_MAX_ADC - 10){
+                    log_info(debug_pc, "Calibration done due to overload:" + String(value));
+                    setPercentage(0);
+                    delay(1000);
+                    setError("Calibration error overload");
+                    return 0;
+                }
+                return raw;
+        }
+
         void setError(String errorToSet){
             lastError = errorToSet;
             error = true;
@@ -123,7 +144,6 @@ class PowerControl{
         MCP4725 MCP;
         int voltage_in_pin;
         String lastError;
-        float max_voltage;
         bool initialized = false;
     public:
         PowerCalibration calibration;
