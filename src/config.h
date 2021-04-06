@@ -27,6 +27,8 @@
 #define CONF_MAX_CURRENT 8
 #define CONF_VOLTAGE_THRESHOLD 0.1
 #define CONF_MAX_ADC 1024
+#define CONF_CURRENT_DIVIDER_K 1
+#define CONF_CURRENT_ACS_OFFSET 2.39
 
 //          voltage resistors
 #define CONF_VOLTAGE_RESISTORS 0
@@ -38,7 +40,6 @@
 #else
     //#define CONF_VOLTAGE_DIVIDER_K (13.66 / 2.12)
     #define CONF_VOLTAGE_DIVIDER_K (8.73 / 1.36)
-    
 #endif
 
 #define CONF_VREF_VOLTAGE   4.81

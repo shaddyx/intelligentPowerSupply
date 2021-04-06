@@ -12,6 +12,7 @@
 #include "display/displayParam.h"
 #include "supply/power_control.h"
 #include "display/displayInfo.h"
+#include "supply/current_sensor.h"
 #include "powerRelay.h"
 
 DebugModule(debug_main, "Main");
@@ -40,6 +41,8 @@ State STATE_DISPLAY_INFO;
 State STATE_CONFIG_VOLTAGE;
 State STATE_CONFIG_CURRENT;
 State STATE_CALIBRATING;
+
+CurrentSensor current_sensor(CONF_CURRENT_CHECK_PIN, CONF_CURRENT_ACS_OFFSET);
 
 PowerControl power(CONF_DAC_ADDRESS, CONF_VOLTAGE_CHECK_PIN);
 StateMachine mstateMachine(&STATE_IDLE);
@@ -81,6 +84,7 @@ void setup(){
 
 	updateVoltageAndCurrent();
 	log_info(debug_main, "Calibrating");
+	current_sensor.init();
 	powerRelay.init();
 	power.calibrate();
 	log_info(debug_main, "Init complete");
@@ -158,6 +162,7 @@ void processInfoDisplay(){
 	displayInfo.c = 0;
 	displayInfo.v = power.get_current_voltage();
 	displayInfo.on = powerRelay.on;
+	displayInfo.c = current_sensor.get_current();
 }
 
 void loop(){
