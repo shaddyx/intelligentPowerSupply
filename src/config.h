@@ -21,6 +21,7 @@
 //          Voltage control configuration
 #define CONF_DAC_ADDRESS 0x60
 #define CONF_VOLTAGE_CHECK_PIN A0
+#define CONF_CURRENT_CHECK_PIN A6
 #define CONF_MIN_VOLTAGE 1.22
 //#define CONF_MAX_VOLTAGE 12
 #define CONF_MAX_CURRENT 8
@@ -35,10 +36,12 @@
     #define CONF_VOLTAGE_RESISTOR_2 15050
     #define CONF_VOLTAGE_DIVIDER_K ((float)CONF_VOLTAGE_RESISTOR_1 / CONF_VOLTAGE_RESISTOR_2)
 #else
-    #define CONF_VOLTAGE_DIVIDER_K (14.26 / 2.12)
+    //#define CONF_VOLTAGE_DIVIDER_K (13.66 / 2.12)
+    #define CONF_VOLTAGE_DIVIDER_K (8.73 / 1.36)
+    
 #endif
 
-#define CONF_VREF_VOLTAGE   4.8
+#define CONF_VREF_VOLTAGE   4.81
 
 
 #define CONF_POWER_RELAY_PIN 14

@@ -32,7 +32,7 @@ class Display {
         }
 
         void printLine(int row, String line){
-            this -> lcd.setCursor(1, row);
+            this -> lcd.setCursor(0, row);
             this -> lcd.print(line);
         }
         

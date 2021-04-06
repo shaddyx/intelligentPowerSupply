@@ -157,6 +157,7 @@ void processEncoder(){
 void processInfoDisplay(){
 	displayInfo.c = 0;
 	displayInfo.v = power.get_current_voltage();
+	displayInfo.on = powerRelay.on;
 }
 
 void loop(){
