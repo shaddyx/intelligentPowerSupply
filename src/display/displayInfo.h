@@ -21,7 +21,7 @@ class DisplayInfo: public DisplayScreen{
                 display->printLine(0, "V:" + FloatUtil::floatToString(v, 5, 2) + " C:" + FloatUtil::floatToString(c, 5, 2));
                 String flags = "";
                 if (on){
-                    flags += "ON";
+                    flags += "ON ";
                 }
                 display->printLine(1, flags);
                 needRefresh = false;
