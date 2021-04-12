@@ -14,7 +14,7 @@ struct PowerCalibration{
 class PowerControl{
     public:
         PowerControl(int mcp_address, int voltage_control_pin):
-        checkInterval(10),
+        checkInterval(1),
         MCP(mcp_address),
         voltage_in_pin(voltage_control_pin),
         lastError(""){}
@@ -80,7 +80,7 @@ class PowerControl{
             long res = 0;
             for (int i=0; i<5; i++){
                 res += analogRead(voltage_in_pin);
-                delay(3);
+                //delay(3);
             }
             return res / 5;
         }
