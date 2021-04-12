@@ -13,6 +13,7 @@
 #include "supply/power_control.h"
 #include "display/displayInfo.h"
 #include "supply/current_sensor.h"
+#include "supply/power_current_control.h"
 #include "powerRelay.h"
 
 DebugModule(debug_main, "Main");
@@ -43,8 +44,9 @@ State STATE_CONFIG_CURRENT;
 State STATE_CALIBRATING;
 
 CurrentSensor current_sensor(CONF_CURRENT_CHECK_PIN, CONF_CURRENT_ACS_OFFSET);
-
-PowerControl power(CONF_DAC_ADDRESS, CONF_VOLTAGE_CHECK_PIN);
+PowerSensor power_sensor(CONF_VOLTAGE_CHECK_PIN);
+PowerControl power(CONF_DAC_ADDRESS, &power_sensor);
+PowerCurrentControl powerCurrentControl(&power, &current_sensor, &power_sensor);
 StateMachine mstateMachine(&STATE_IDLE);
 DisplayParam<float> voltage_editor(String("Voltage"), &display, &encoder, 0, 0, 0, 0.1, 1);
 DisplayParam<float> current_editor(String("Current"), &display, &encoder, 0, 0, CONF_MAX_CURRENT, 0.1, 1);
@@ -70,8 +72,11 @@ void setup(){
 	initComponents();
 	display.init();
 	menu.init();
+	power_sensor.init();
+	current_sensor.init();
 	enter_button.init();
 	on_off_button.init();
+	powerCurrentControl.init();
 	mstateMachine.init();
 	STATE_IDLE.transitions.add(&STATE_CONFIG_VOLTAGE);
 	STATE_IDLE.transitions.add(&STATE_CONFIG_CURRENT);
@@ -160,9 +165,10 @@ void processEncoder(){
 
 void processInfoDisplay(){
 	displayInfo.c = 0;
-	displayInfo.v = power.get_current_voltage();
 	displayInfo.on = powerRelay.on;
-	displayInfo.c = current_sensor.get_current();
+	displayInfo.v = power_sensor.voltage;
+	displayInfo.c = current_sensor.current;
+	displayInfo.overload = powerCurrentControl.overload;
 }
 
 void loop(){
@@ -170,9 +176,14 @@ void loop(){
 	processEncoder();
 	processInfoDisplay();
 
-	power.target_voltage = voltage_editor.current;
+	powerCurrentControl.voltage = voltage_editor.current;
+	powerCurrentControl.current = current_editor.current;
+	current_sensor.poll();
+	power_sensor.poll();
 	power.poll();
+	powerCurrentControl.poll();
 	powerRelay.poll();
+	display.poll();
 	if (power.calibrated){
 		voltage_editor.maxValue = power.calibration.max_voltage;
 	}

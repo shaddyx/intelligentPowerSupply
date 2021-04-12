@@ -7,6 +7,7 @@ class DisplayInfo: public DisplayScreen{
         float v = 0;
         float c = 0;
         bool on = 0;
+        bool overload = 0;
         DisplayInfo(Display * display):
         display(display){
 
@@ -14,14 +15,16 @@ class DisplayInfo: public DisplayScreen{
         
         void poll(){
             if (needRefresh){
-                needRefresh = false;
                 display->clear();
             }
-            if (oldV != FloatUtil::round2(v) || oldC != FloatUtil::round2(c) || oldOn != on){
+            if (oldV != FloatUtil::round2(v) || oldC != FloatUtil::round2(c) || oldOn != on || needRefresh){
                 display->printLine(0, "V:" + FloatUtil::floatToString(v, 5, 2) + " C:" + FloatUtil::floatToString(c, 5, 2) + "    ");
                 String flags = "";
                 if (on){
                     flags += "ON ";
+                }
+                if (overload){
+                    flags += "OVERLOAD ";
                 }
                 flags += "                 ";
                 display->printLine(1, flags);
@@ -29,6 +32,7 @@ class DisplayInfo: public DisplayScreen{
                 oldC = FloatUtil::round2(c);
                 oldOn = on;
             }
+            needRefresh = false;
         }
 
     private:

@@ -30,6 +30,8 @@
 #define CONF_CURRENT_DIVIDER_K 1
 #define CONF_CURRENT_ACS_OFFSET 2.39
 
+#define CONF_CURRENT_DIFF_VOLTAGE_INCREMENT_K 1
+
 //          voltage resistors
 #define CONF_VOLTAGE_RESISTORS 0
 

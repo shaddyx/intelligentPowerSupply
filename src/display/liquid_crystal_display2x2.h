@@ -5,6 +5,7 @@
 #include <LiquidCrystal_I2C.h>
 #include "util/util.h"
 #include <collections/SimpleList.h>
+#include "util/timer.h"
 class DisplayScreen{
     public:
         bool needRefresh = true;
@@ -13,7 +14,8 @@ class DisplayScreen{
 class Display {
     public:
         Display():
-        lcd(CONF_DISPLAY_ADDRESS,CONF_DISPLAY_X_SIZE, CONF_DISPLAY_Y_SIZE)
+        lcd(CONF_DISPLAY_ADDRESS,CONF_DISPLAY_X_SIZE, CONF_DISPLAY_Y_SIZE),
+        refreshInterval(1000)
         {
 
         }
@@ -44,8 +46,17 @@ class Display {
         void add_component(DisplayScreen * screen){
             screens.add(screen);
         }
+        void poll(){
+            // if (refreshInterval.poll()){
+            //     lcd.init();
+            //     lcd.backlight();
+            //     refresh_all();
+            // }
+        }
 
     private:
         LiquidCrystal_I2C lcd;
+        TimeInterval refreshInterval;
         SimpleList <DisplayScreen *> screens;
+        
 };
