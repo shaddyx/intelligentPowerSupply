@@ -20,7 +20,7 @@ class CurrentSensor{
             auto k = ((double) CONF_VREF_VOLTAGE / (double) CONF_MAX_ADC) * CONF_CURRENT_DIVIDER_K;
             auto value = analogRead(pin);
             Serial.println("Current: " + String(value));
-            float res = value * k - acs_offset;
+            float res = ((double) value * k - acs_offset) * 10;
             if(res < 0){
                 res = 0;
             }

@@ -13,18 +13,18 @@ class DisplayInfo: public DisplayScreen{
         }
         
         void poll(){
-            if (oldV != FloatUtil::round2(v) || oldC != FloatUtil::round2(c) || oldOn != on){
-                needRefresh = true;
-            }
             if (needRefresh){
+                needRefresh = false;
                 display->clear();
-                display->printLine(0, "V:" + FloatUtil::floatToString(v, 5, 2) + " C:" + FloatUtil::floatToString(c, 5, 2));
+            }
+            if (oldV != FloatUtil::round2(v) || oldC != FloatUtil::round2(c) || oldOn != on){
+                display->printLine(0, "V:" + FloatUtil::floatToString(v, 5, 2) + " C:" + FloatUtil::floatToString(c, 5, 2) + "    ");
                 String flags = "";
                 if (on){
                     flags += "ON ";
                 }
+                flags += "                 ";
                 display->printLine(1, flags);
-                needRefresh = false;
                 oldV = FloatUtil::round2(v);
                 oldC = FloatUtil::round2(c);
                 oldOn = on;

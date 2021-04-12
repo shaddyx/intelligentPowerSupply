@@ -80,6 +80,7 @@ class PowerControl{
             long res = 0;
             for (int i=0; i<5; i++){
                 res += analogRead(voltage_in_pin);
+                delay(3);
             }
             return res / 5;
         }
