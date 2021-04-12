@@ -110,15 +110,15 @@ void processMainMenu(){
 	if (encoder.is_right()){
 		mstateMachine.changeState(&STATE_IDLE);
 		menu.next();
-		idle_timer.start();
+		idle_timer.reset_and_start();
 	}
 	if (encoder.is_left()){
 		mstateMachine.changeState(&STATE_IDLE);
 		menu.prev();
-		idle_timer.start();
+		idle_timer.reset_and_start();
 	}
 	if (enter_button.pressed()){
-		idle_timer.start();
+		idle_timer.reset_and_start();
 		mstateMachine.changeState(&STATE_IDLE);
 		log_info(debug_main, "Entering menu item: " + menu.findCurrent()->caption);
 		if (!menu.enter()){
@@ -198,7 +198,7 @@ void loop(){
 	if (mstateMachine.current == &STATE_IDLE){
 		idle_timer.start_if_not();
 	} else {
-		idle_timer.stop();
+		idle_timer.stop_and_reset();
 	}
 	if (mstateMachine.isChanged()){
 		log_info(debug_main, "State was changed");
