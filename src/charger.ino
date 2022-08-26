@@ -55,6 +55,7 @@ TimeDelay idle_timer(5000);
 TimeInterval simple_timer(1000);
 PowerRelay powerRelay(CONF_POWER_RELAY_PIN);
 
+
 void updateVoltageAndCurrent(){
 	menu.findItem(MVOLTAGE) -> caption = "V: " + String (voltage_editor.current);
 	menu.findItem(MCURRENT) -> caption = "C: " + String (current_editor.current);

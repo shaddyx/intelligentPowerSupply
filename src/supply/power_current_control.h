@@ -14,7 +14,8 @@ class PowerCurrentControl{
         powerControl(powerControl),
         currentSensor(currentSensor),
         powerSensor(powerSensor),
-        timeToIncrement(500)
+        timeToStartIncrement(500),
+        timeToIncrement(3)
         {
         }
         void init(){
@@ -27,20 +28,23 @@ class PowerCurrentControl{
             }
             if (checkInterval.poll()){
                 if (currentSensor->current > current){
-                     auto increment = currentSensor->current - current;
-                     powerControl->target_voltage -= increment / 5 * CONF_CURRENT_DIFF_VOLTAGE_INCREMENT_K;
+                     auto decrement = currentSensor->current - current;
+                     decrement = decrement / 5 * CONF_CURRENT_DIFF_VOLTAGE_INCREMENT_K;
+                     if (decrement < 0.1){
+                         decrement = 0.1;
+                     }
+                     powerControl->target_voltage -= decrement;
                      overload = true;
-                     timeToIncrement.reset();
+                     timeToStartIncrement.reset();
                      can_increment = false;
                 } else if (currentSensor->current < current && powerControl->target_voltage < voltage)
                 {
-                    timeToIncrement.start_if_not();
-                    if (timeToIncrement.poll()){
+                    timeToStartIncrement.start_if_not();
+                    if (timeToStartIncrement.poll()){
                         can_increment = true;
                     };
-                    if (can_increment){
-                        auto increment = voltage - powerControl->target_voltage;
-                        powerControl->target_voltage += increment / 5;
+                    if (can_increment && timeToIncrement.poll()){
+                        powerControl->target_voltage += 0.1;
                     }
                 }
                 if (powerControl->target_voltage < 0){
@@ -57,5 +61,6 @@ class PowerCurrentControl{
         PowerControl * powerControl;
         CurrentSensor * currentSensor;
         PowerSensor * powerSensor;
-        TimeDelay timeToIncrement;
+        TimeDelay timeToStartIncrement;
+        TimeInterval timeToIncrement;
 };
